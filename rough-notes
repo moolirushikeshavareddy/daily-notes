@@ -1,0 +1,58 @@
+
+Jenkins
+—pre-req———>java 11
+Port—8080
+
+
+Ec2----minimum 1cpu 1gb ram
+Amazon linux 2 ——sudo su ——root user
+
+amazon-linux-extras install java-openjdk11
+
+sudo wget -O /etc/yum.repos.d/jenkins.repo https://pkg.jenkins.io/redhat-stable/jenkins.repo
+sudo rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key
+
+
+yum install jenkins -y
+
+Systemctl status jenkins.service
+Systemctl start jenkins.service
+
+Top q
+
+Chrome------publicip———8080
+
+Jenkins open———sudo cat /var/lib/jenkins/secrets/initialAdminPassword
+
+Install plugins default 
+
+
+User —>
+Pasword—>
+reenter password—>
+Mail id ——>
+
+Ip:8080—next
+
+
+Strat jenkins
+
+
+Dashboard
+
+
+
+
+Stop
+
+
+
+
+
+
+
+
+
+
+
+
