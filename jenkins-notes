@@ -1,0 +1,87 @@
+Class-1
+------------
+->it is a ci/cd tool
+Ex:
+->Jenkins
+->gitlab
+->argo cd
+->buddy
+->code ship
+->circleci
+->aws code pipeline
+->aws code deploy
+->semaphore
+->teamcity
+->GitHub actions
+->travis ci
+->bamboo
+->bitbucket
+->google cloud platform
+->azure Devops
+
+ci : continuous integration ---->continuous build + continuous test
+->we are continuously building and testing the old code with new code
+->before ci we have time waste and everything is manual work---->90's
+->after ci everything is automated
+
+cd : continuous delivery----->deployment manually to production environment
+cd : continuous deployment-->deployment automatically to production environment
+
+->to create ci/cd we need to create pipeline
+
+PIPELINE:
+->step by step execution of a particular process (or)
+->series of events interlinked with events
+code--->build--->test--->deploy
+
+ENVIRONMENTS:
+dev	: developers
+qa	: testers
+uat	: client
+->the first three environments are called pre-prod or non-prod and for Devops team
+prod	: users
+->prod environment is also known as live environment
+
+->if we want to create ci/cd pipeline we need to have Jenkins
+
+JENKINS:
+->it is a free and open-source tool
+->it is platform independent
+->it is build on java-11
+->kohsuke kawaguchi invented jenkins in sun micro systems 2004
+->initial name was Hudson---> paid version
+->later oracle brought the Jenkins and made it free and open version
+->it consists lot of plugins
+->default port number for Jenkins is 8080
+
+SETUP:
+->create ec2 with all traffic (8000)
+#STEP-1: INSTALLING GIT JAVA-1.8.0 MAVEN 
+yum install git java-1.8.0-openjdk maven -y
+
+#STEP-2: GETTING THE REPO (jenkins.io --> download -- > redhat)
+sudo wget -O /etc/yum.repos.d/jenkins.repo https://pkg.jenkins.io/redhat-stable/jenkins.repo
+sudo rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key
+
+#STEP-3: DOWNLOAD JAVA11 AND JENKINS
+amazon-linux-extras install java-openjdk11 -y	or sudo yum install java-11
+yum install jenkins -y
+update-alternatives --config java		: to list all java versions and choose the rquired version and press enter
+
+#STEP-4: RESTARTING JENKINS (when we download service it will on stopped state)
+systemctl start jenkins.service
+systemctl status jenkins.service
+
+BROWSER:
+->copy the public_ip and paste on browser like this 
+->public-ip:8080
+
+PASSWORD:
+->for password —>cat /var/lib/jenkins/secrets/initialAdminPassword
+->after install plugins and create user for login
+
+INTEGRATION OF GIT AND MAVEN WITH JENKINS:
+CREATE A JOB:
+->New item---> name : Netflix ci job--->free style--->ok
+->source code management-->select git-->github link
+->build steps-->add setup--->execute shell--mvn clean package (cotent)--->save
