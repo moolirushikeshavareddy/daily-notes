@@ -84,7 +84,7 @@ INTEGRATION OF GIT AND MAVEN WITH JENKINS:
 CREATE A JOB:
 ->New item---> name : Netflix ci job--->free style--->ok
 ->source code management-->select git-->github link
-->build steps-->add setup--->execute shell--mvn clean package (cotent)--->save
+->build steps-->add setup--->execute shell--mvn clean package--->save
 
 ==================================================================================================================================================
 
