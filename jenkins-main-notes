@@ -85,3 +85,80 @@ CREATE A JOB:
 ->New item---> name : Netflix ci job--->free style--->ok
 ->source code management-->select git-->github link
 ->build steps-->add setup--->execute shell--mvn clean package (cotent)--->save
+
+==================================================================================================================================================
+
+class-2---scripts
+-----------------
+PARAMETERS:
+->used to pass input for the jobs
+
+CHOICE:
+->when we have multiple options we can select any one option
+->with the of choice we can pass single input
+PROCESS:
+->create a ci job--->go to configure--->select this project is parameterized--->choice--->name: env choice ---->dev test uat prod ---> save
+
+STRING:
+->with the help of string parameter we can pass multiple inputs
+PROCESS:
+->create a ci job--->go to configure--->select this project is parameterized--->string--->name: env and client ---->dev test uat prod ---> save
+
+MULTI LINE STRING:
+->if we want to pass the comments while building the jobs in this kind we are using multi-line-string parameters
+PROCESS:
+->create a ci job--->go to configure--->select this project is parameterized--->multi-line-string--->name: comments ---->write comments ---> save
+
+BOOLEAN:
+->it is used for true or false
+->it is used to take backup of the build or build process
+PROCESS:
+->create a ci job--->go to configure--->select this project is parameterized--->bool--->name: build backup ---> save
+
+FILE:
+->to build files
+->if you have any files in local and take that file to server, for that we use file parameter
+PROCESS:
+->create a ci job--->go to configure--->select this project is parameterized--->file--->name: file_name ---> save
+
+PORT CHANGE:
+->if we want to change jenkins port from 8080 to any use below command
+->vim /usr/lib/systemd/system/jenkins.service
+->go to line number 67 where change port to any
+->Environment="JENKINS_PORT=8090"
+NOTE:
+->when ever you change any service restart the services else the changes wont reflect
+
+CHANGES HAVE TO DONE AFTER PORT CHANGE:
+->systemctl daemon-reload
+->systemctl restart jenkins.service
+->systemctl status jenkins.service
+->chkconfig jenkins on	: no to start jenkins again after shutdown or restart
+
+PASSWORD:
+->for password —>cat /var/lib/jenkins/secrets/initialAdminPassword
+->after install plugins and create user for login
+
+PASSWORD LESS LOGIN:
+->in real time it is not acceptable 
+->when ever you forgot your password use password less login
+->vim /var/lib/jenkins/config.xml
+->go to line number 111 and replace true with false
+->Environment="JENKINS_ENABLE_ACCESS_LOG=false"
+
+CHANGING BUILD LIMITS:
+->by default Jenkins build limit is 2
+->click on execute concurrent builds if necessary in Jenkins configuration 
+->to extend the limits 
+->go to dashboard--->go to manage Jenkins--->go to nodes--->click build-in-node--->go to configure--->change number of executors--->10---->save
+
+HOW TO RESOLVE ISSUE WHEN JENKINS SERVER CRASHED: 
+->when ever we stop and start the server your ip_address will change and the services inside the server also stop
+
+RESTORING DELETED JOBS:
+->if anyone deleted any job we won’t get it back in Jenkins by default
+->if we want to get the job back we need to install a plugins called job configuration history 
+PROCESS:
+->go to dashboard---->click on manage Jenkins--->click on plugins--->click on available plugins--->search job configuration history--->install
+->now go back to dashboard and delete the project
+->now click on job config history on dashboard--->click on show delete jobs only--->restore project--->yes--->click on enable
