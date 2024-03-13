@@ -88,7 +88,7 @@ CREATE A JOB:
 
 ==================================================================================================================================================
 
-class-2---scripts
+class-2---parameters
 -----------------
 PARAMETERS:
 ->used to pass input for the jobs
@@ -144,6 +144,7 @@ PASSWORD LESS LOGIN:
 ->when ever you forgot your password use password less login
 ->vim /var/lib/jenkins/config.xml
 ->go to line number 111 and replace true with false
+-><security>true<security>
 ->Environment="JENKINS_ENABLE_ACCESS_LOG=false"
 
 CHANGING BUILD LIMITS:
