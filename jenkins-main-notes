@@ -84,11 +84,11 @@ INTEGRATION OF GIT AND MAVEN WITH JENKINS:
 CREATE A JOB:
 ->New item---> name : Netflix ci job--->free style--->ok
 ->source code management-->select git-->github link
-->build steps-->add setup--->execute shell--mvn clean package--->save
+->build steps-->add setup--->execute shell--mvn clean package (cotent)--->save
 
 ==================================================================================================================================================
 
-class-2---parameters
+class-2---scripts
 -----------------
 PARAMETERS:
 ->used to pass input for the jobs
@@ -144,7 +144,6 @@ PASSWORD LESS LOGIN:
 ->when ever you forgot your password use password less login
 ->vim /var/lib/jenkins/config.xml
 ->go to line number 111 and replace true with false
--><security>true<security>
 ->Environment="JENKINS_ENABLE_ACCESS_LOG=false"
 
 CHANGING BUILD LIMITS:
@@ -163,3 +162,74 @@ PROCESS:
 ->go to dashboard---->click on manage Jenkins--->click on plugins--->click on available plugins--->search job configuration history--->install
 ->now go back to dashboard and delete the project
 ->now click on job config history on dashboard--->click on show delete jobs only--->restore project--->yes--->click on enable
+
+==================================================================================================================================================
+
+Class-3---cronjob
+-----------------
+CRON JOB:
+->it is used to schedule the works on jenkins
+->cron syntax is used to work with cron jobs
+->cron syntax : * * * * *
+->each star will have space in between them
+->starting from first star to last star
+->*		: minutes
+->*		: hours
+->*		: date
+->*		: month
+->*		: 0=sunday, 1=monday, 2=tuesday, 3=wednesday, 4=thursday, 5=friday, 6=saturday
+
+# ┌───────────── minute (0 - 59)
+# │ ┌───────────── hour (0 - 23)
+# │ │ ┌───────────── day of the month (1 - 31)
+# │ │ │ ┌───────────── month (1 - 12)
+# │ │ │ │ ┌───────────── day of the week (0 - 6) (Sunday to Saturday)
+# │ │ │ │ │                                   OR sun, mon, tue, wed, thu, fri, sat
+# │ │ │ │ │ 
+# │ │ │ │ │
+# *  * * *  *
+
+ex: manually creating cronjob
+today is 9.35 pm 14-03-2024------> 35 9 14 3 4
+today is 10.00 am 14-03-2024------> 0 10 14 3 4 
+->https://crontab-generator.org---->if you dont know how to create a cronjob you can check here
+NOTE:
+->servers will follow UTC time zone
+PROCESS:
+->create a ci_job and click on configure--->click on build triggers---->click on build periodically-->give the cronjob( 0 22 5 3 2)---->save
+LIMITATIONS:
+->it will not check for code changed or not
+->so for this we can use poll scm
+
+POLLSCM:
+->it will build when code is changed only
+->it will have some time limits
+NOTE: 
+->need to set the time limit
+PROCESS:
+->create a ci_job and click on configure--->click on build triggers---->click on poll scm-->give the schedule cronjob( 0 22 5 3 2)---->save
+LIMITATIONS:
+->dev will change code at 7am but the poll scm is schudeled at 11am--->4 hours time waste 
+->for this we can use webhooks
+
+WEBHOOKS:
+->it will trigger the build the moment we commit the code
+->it doesnt have the time limit
+PROCESS:
+->github--->repo--->settings--->webhooks--->add webhook--->payload url: jenkins url/github-webhook/--->content url : application/json--->add webhook
+->go to jenkins dashboard--->create jenkins_job--->build_triggers--->github hook trigger for gitscm polling---->save
+
+THROTTLE BUILD:
+->to restrict the number of builds per intervel
+->you can restrict for the second, minute, hour, day, week, month, year
+->it is mainly used to restrict the server crash with multiple builds
+PROCESS:
+->create job--->throttle builds--->number of build: 3--->time periods: hours--->save
+->make builds and test them
+
+REMOTE TRIGGERING:
+->it is used to trigger the build remotely
+PROCESS:
+->create job--->build triggers--->trigger builds remotely--->authentication token: rushi(token_name)--->save
+->copy thr url and change values and build it---->jenkins_url/job/job_name/build?token=TOKEN_NAME
+->paste it chrome and press enter --->now you check in jenkins new build is created
