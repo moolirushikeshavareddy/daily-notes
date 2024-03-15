@@ -190,8 +190,8 @@ CRON JOB:
 # *  * * *  *
 
 ex: manually creating cronjob
-today is 9.35 pm 14-03-2024------> 35 9 14 3 4
-today is 10.00 am 14-03-2024------> 0 10 14 3 4 
+today is 10.00 pm 05-03-2024------> 0 22 5 3 2
+today is 10.00 am 05-03-2024------> 0 10 5 3 2
 ->https://crontab-generator.org---->if you dont know how to create a cronjob you can check here
 NOTE:
 ->servers will follow UTC time zone
@@ -203,7 +203,7 @@ LIMITATIONS:
 
 POLLSCM:
 ->it will build when code is changed only
-->it will have some time limits
+->it will have some time limit
 NOTE: 
 ->need to set the time limit
 PROCESS:
@@ -233,3 +233,48 @@ PROCESS:
 ->create job--->build triggers--->trigger builds remotely--->authentication token: rushi(token_name)--->save
 ->copy thr url and change values and build it---->jenkins_url/job/job_name/build?token=TOKEN_NAME
 ->paste it chrome and press enter --->now you check in jenkins new build is created
+
+==================================================================================================================================================
+
+class-4---master-slave
+---------------------
+MASTER AND SLAVE:
+->it is used to distribute the builds
+->it reduce the load on Jenkins server
+->communication between master and slave using ssh
+->here we need to install agent (java-11)
+->slave can use any platform
+->label = way of assigning work to slave
+
+SETUP:
+Step-1:
+->create a server and install java-11 (slave node)
+->amazon-linux-extras install java-openjdk11 -y
+->yum install git maven -y
+
+Step-2:
+->Dashboard--->manage Jenkins--->nodes--->new node--->node_name : slave1---->permanent agent---->create
+
+CONFIGURATION OF SLAVE:
+Number of executors		: 3		#number of parallel builds
+Remote root directory	: /tmp		#the place where our output is stored on slave server
+Labels				: slave1	#place the op in a particular slave
+Usage				: last option	#any one option
+Launch method		: last option	#via ssh
+Host				: slave1 private ip address
+Credentials--->add--->jenkins--->kind : ssh username with privately--->username : ec2-user
+privatekey			: pem file of server--->save
+Hotkey verification strategy: last option---->save
+
+Dashboard--->job--->configure--->restrict where this job run---->label : slave1--->save
+
+LINKED JOBS:
+->here jobs are linked with each other
+->types:
+	1)up stream
+	2)down stream
+
+CONFIGURATION:
+->create job1
+->create job2
+->job1--->configuration--->post build actions--->build other projects--->name of job2--->save
