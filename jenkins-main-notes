@@ -264,7 +264,7 @@ Launch method		: last option	#via ssh
 Host				: slave1 private ip address
 Credentials--->add--->jenkins--->kind : ssh username with privately--->username : ec2-user
 privatekey			: pem file of server--->save
-Hotkey verification strategy: last option---->save
+Hotkey verification strategy: last option (no)---->save
 
 Dashboard--->job--->configure--->restrict where this job run---->label : slave1--->save
 
@@ -278,3 +278,242 @@ CONFIGURATION:
 ->create job1
 ->create job2
 ->job1--->configuration--->post build actions--->build other projects--->name of job2--->save
+
+==================================================================================================================================================
+
+Class-5---jenkins-pipeline
+------------------------
+->step by step execution of a particular process
+				or
+->series of events interlinked with each other
+->pipelines are syntax based
+->we use groovy language to write pipeline
+->it is a domain specific language (DSL)
+->it gives the Visualisation of a process execution
+
+TYPES OF PIPELINE:
+1)scripted pipeline
+2)declarative pipeline
+
+CI PIPELINE:
+DECLARATIVE PIPELINE:
+1)SINGLE STAGE PIPELINE:
+->if we are having single stage in pipelines then it is called as single stage pipeline
+syntax:
+pipeline {
+	agent any
+	#agent {
+		#label 'slave1'
+	#}
+	stages {
+		stage('abc') {
+			steps {
+				sh 'touch file1'
+			}
+		}
+	}
+}
+
+NOTE: PASSS
+P	: pipeline
+A	: agent
+S	: stages
+S	: stage
+S	: steps
+
+2)MULTI-STAGE PIPELINE:
+->if we have morethan one stage then it is called as multi stage pipeline
+syntax:
+pipeline {
+	agent any
+	stages {
+		stage('abc') {
+			steps {
+				sh 'touch file1'
+			}
+		}
+		stage('def') {
+			steps {
+				sh 'lscpu'
+			}
+		}
+	}
+}
+
+code---->build---->test---->artifact---->deploy
+
+MAVEN PIPELINE:
+pipeline {
+	agent any
+	stages {
+		stage('checkout') {		
+			steps {
+				git 'https://github link'
+			}
+		}
+
+		stage('build') {
+			steps {
+				sh 'mvn compile'
+			}
+		}
+
+		stage('test') {
+			steps {
+				sh 'mvn test'
+			}
+		}
+
+		stage('artifact') {
+			steps {
+				sh 'mvn clean package'
+			}
+		}
+	}
+}
+
+checkout	: checkout means getting the source code from github
+sh		: sh is used to execute only linux commands
+
+
+PIPELINE AS A CODE OVER SINGLE STAGE:
+->ececuting multiple commands or multipule actions on a single stage
+
+PIPELINE AS A CODE OVER SINGLE STAGE:
+pipeline {
+	agent any
+	stages {
+		stage('maven') {
+			steps {
+				git 'https://github link'
+				sh 'mvn compile'
+				sh 'mvn test'
+				sh 'mvn clean package'
+			}
+		}
+	}
+}
+
+PIPELINE AS A CODE OVER MULTIPLE STAGE:
+->ececuting multiple commands or multipule actions on multiple stage
+pipeline {
+	agent any
+	stages {
+		stage('maven1') {
+			steps {
+				git 'https://github link'
+				sh 'mvn compile'
+			}
+		}
+
+		stage('maven2') {
+			steps {
+				sh 'mvn test'
+				sh 'mvn clean package'
+			}
+		}
+	}
+}
+
+PIPELINE AS A CODE OVER SINGLE-SHELL:
+->ececuting multiple commands over a single shell
+pipeline {
+	agent any
+	stages {
+		stage('maven') {
+			steps {
+				git 'https://github link'
+				sh '''
+				mvn compile
+				mvn test
+				mvn clean package
+				'''
+			}
+		}
+	}
+}
+
+TO EXECUTE ON A SLAVE:
+pipeline {
+	agent {
+		label 'slave1'
+	}
+	stages {
+		stage('abc') {
+			steps {
+				sh 'touch file1'
+			}
+		}
+	}
+}
+
+SONARQUBE:
+->it is a tool used to check the code quality 
+->it the bugs, vulnerabilities, code duplications, code smells
+->it supports 20+ programming languages
+->we have both free and paid versions
+->port	: 9000
+->required t2 medium at-least 2 cpus and 4gb ram
+->dependancy : java-11
+
+SETUP:
+#! /bin/bash
+#Launch an instance with 9000 and t2.medium
+cd /opt/
+wget https://binaries.sonarsource.com/Distribution/sonarqube/sonarqube-8.9.6.50800.zip
+unzip sonarqube-8.9.6.50800.zip
+#amazon-linux-extras install java-openjdk11 -y
+sudo yum install java-17
+#useradd sonar
+#chown sonar:sonar sonarqube-8.9.6.50800 -R
+#chmod 777 sonarqube-8.9.6.50800 -R
+#su - sonar
+
+#run this on server manually
+#sh /opt/sonarqube-8.9.6.50800/bin/linux/sonar.sh start
+#echo "user=admin & password=admin"
+
+->after login--->add project--->manual---.project key--->Netflix--->setup--->token--->Netflix--->generate--->continue--->maven
+
+Copy paste the code on pipeline:
+pipeline {
+	agent any
+	stages {
+		stage('checkout') {		
+			steps {
+				git 'https://github link'
+			}
+		}
+
+		stage('build') {
+			steps {
+				sh 'mvn compile'
+			}
+		}
+
+		stage('test') {
+			steps {
+				sh 'mvn test'
+			}
+		}
+		
+		stage('code quality') {
+			steps {
+				sh '''
+				mvn sonar:sonar \
+					-Dsonar.projectkey=netflix \
+					-Dsonar.host-url=http://public_ipaddress:9000 \
+					-Dsonar.login=token_key
+				'''
+			}
+		}
+
+		stage('artifact') {
+			steps {
+				sh 'mvn clean package'
+			}
+		}
+	}
+}
+
+==================================================================================================================================================
