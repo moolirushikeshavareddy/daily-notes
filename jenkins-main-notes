@@ -471,11 +471,214 @@ sudo yum install java-17
 
 #run this on server manually
 #sh /opt/sonarqube-8.9.6.50800/bin/linux/sonar.sh start
+->login to sonarqube
 #echo "user=admin & password=admin"
 
-->after login--->add project--->manual---.project key--->Netflix--->setup--->token--->Netflix--->generate--->continue--->maven
+->after login--->add project--->manual--->project key--->Netflix--->setup--->token--->Netflix--->generate--->continue--->maven
 
-Copy paste the code on pipeline:
+Copy and paste the code on pipeline:
+
+pipeline {
+	agent any
+	stages {
+		stage('checkout') {		
+			steps {
+				git 'https://github link'
+			}
+		}
+
+		stage('build') {
+			steps {
+				sh 'mvn compile'
+			}
+		}
+
+		stage('test') {
+			steps {
+				sh 'mvn test'
+			}
+		}
+		
+		stage('code quality') {
+			steps {
+				sh '''
+				mvn sonar:sonar \
+				  -Dsonar.projectkey=netflix \
+				  -Dsonar.host-url=http://public_ipaddress:9000 \
+				  -Dsonar.login=token_key
+				'''
+			}
+		}
+
+		stage('artifact') {
+			steps {
+				sh 'mvn clean package'
+			}
+		}
+	}
+}
+
+==================================================================================================================================================
+
+Class-6--->variables, post build action, RBAC
+---------------------------------------
+VARIABLES:
+->which can assign a value
+->there are two types of variables
+Ex:
+A = 10
+Where a -->variable 
+	10 -->value
+
+1)USER DEFINED VARIABLES:---static variables
+->local variables	: we can define inside job
+->global variables	: we can define outside job
+
+2)JENKINS ENVIRONMENT VARIABLES:
+->these variables are going to change as for build
+
+HOW TO PASS VARIABLES ON PIPELINE:
+pipeline {
+	agent any
+	environment {
+		name = "rushi"
+		loc = "bangalore"
+	}
+
+	stages {
+		stage('abc') {
+			steps {
+				echo "this is $name living in $loc"
+				sh 'env'
+			}
+		}
+	}
+}
+
+POST BUILD ACTIONS:
+->actions that we perform after build is called post build actions
+->there are 3 types of post build actions
+1)ALWAYS:
+->if build failed or success it will run the post actions 
+pipeline {
+	agent any
+	environment {
+		name = "rushi"
+		loc = "bangalore"
+	}
+
+	stages {
+		stage('abc') {
+			steps {
+				echo "this is $name living in $loc"
+				sh 'env'
+			}
+		}
+	}
+	
+	post {
+		always {
+			echo "the build is done"
+		}
+	}
+}
+
+2)SUCCESS:
+->it will execute post actions only when the build is successful
+pipeline {
+	agent any
+	environment {
+		name = "rushi"
+		loc = "bangalore"
+	}
+
+	stages {
+		stage('abc') {
+			steps {
+				echo "this is $name living in $loc"
+				sh 'env'
+			}
+		}
+	}
+	
+	post {
+		success {
+			echo "the build is sucess"
+		}
+	}
+}
+
+3)FAILURE:
+->it will execute post actions only when the build is failed
+pipeline {
+	agent any
+	environment {
+		name = "rushi"
+		loc = "bangalore"
+	}
+
+	stages {
+		stage('abc') {
+			steps {
+				echo "this is $name living in $loc"
+				sh 'env'
+			}
+		}
+	}
+	
+	post {
+		failure {
+			echo "the build is failure"
+		}
+	}
+}
+
+RBAC: ROLE BASE ACCESS CONTROL
+->this task only done by experience people
+->in real time to restrict the access from jenkins console we use brace
+->with brace we can give set of limited permissions for users
+
+1)CREATE USERS:
+->go to dashboard--->manage jenkins--->users--->create users (abc,def)
+
+2)DOWNLAOD A PLUGINS:
+->go to dashboard--->manage jenkins--->plugins--->available plugins--->role-based authorization strategy--->install
+
+3)CONFIGURE:
+->go to dashboard--->manage jenkins--->security--->security--->authorization--->role-based strategy--->save
+
+4)MANAGE AND ASSIGN ROLES:
+->go to dashboard--->manage jenkins--->manage and assign roles--->manage roles
+Role1: fresher---read access
+Role2: experience---admin access----->save--->assign roles ---->save
+
+==================================================================================================================================================
+
+
+
+PROJECT:
+TOMCAT SETUP:
+->dlcdc.apache.org/tomcat
+->wget http://dlcdc.apache.org/tomcat/tomcat-9/v9.0.80/bin/apache-tomcat-9.0.80.tar.gz
+->tar -zxvf apache-tomcat-9.0.80.tar.gz
+->vim apache-tomcat-9.0.80/conf/tomcat-users.xml
+	<tomcat>
+	<role rolename="manager-gui" />
+	<role rolename="manager-script" />
+	user username="tomcat" password="rushi" roles="manager-gui, manager-script" />
+	</tomcat>
+->vim apache-tomcat-9.0.80/webapps/manager/META_INF/content.xml
+	delete line number 21 and 22
+->sh apache-tomcat-9.0.80/bin/startup.sh
+->tomcat public_ip:8080
+->manager application--->user name and password
+
+DOWNLOAD A PLUGINS:
+->go to dashboard--->manage jenkins--->plugins--->available plugins--->deploy to container--->install--->save
+->this is to deploy the tomcat
+->go to dashboard--->manage jenkins--->credentials--->system--->global credentials--->add credentials--->kind : username and password, scope: global(jenkins...)----->username--->password--->create
+->copy the tomcat credentials ID
+ex:
 pipeline {
 	agent any
 	stages {
@@ -507,6 +710,20 @@ pipeline {
 				'''
 			}
 		}
+		
+		stage('deploy'){
+			steps{
+				deploy adapters:[
+					tomcat9(
+						credentialsID : 'copy tomcat credentaisl ID' ,
+						path : '' ,
+						url : 'http://tomcatpublic_ip:8080/'
+					)
+				],
+				contextPath : 'netflix'
+				war : 'target/*.war'
+			}
+		}
 
 		stage('artifact') {
 			steps {
@@ -516,4 +733,47 @@ pipeline {
 	}
 }
 
-==================================================================================================================================================
+->now check on tomcat public_ip:8080 in browser you can check the netflix application in tomcat
+->to check the logs
+->tail -100f /root/apache-tomcat-9.0.80/logs/catalina.2024-15-03.log
+
+CHANGE PORT IN TOMCAT:
+->vim /root/apache-tomcat-9.0.80/conf/server.xml
+->sh /root/apache-tomcat-9.0.80/bin/shutdown.sh
+->sh /root/apache-tomcat-9.0.80/bin/startup.sh
+
+
+TROUBLESHOOTING TECHNIQUES:
+1)sever-level 
+2)jbo-level
+3)code-level
+
+SEVER-LEVEL TROUBLESHOOTING:
+->when a job fails check the 
+->console output
+->maven and java versions
+->dependency mistake
+->cpu and memory usuage
+
+JOB_LEVEL TROUBLESHOOTING:
+->repo and branch config errors
+->syntax
+->plugins
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
