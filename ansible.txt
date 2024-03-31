@@ -1,0 +1,814 @@
+ class-1--introduction of ansible
+-----------------------------
+ANSIBLE:
+->it is a free and open source tool
+->it is an IT-Engine which automates creation to deployment
+->it is also called as configuration management tool
+->ansible invented by Maichel dehaan in 2012
+->ansible is taken by Redhat
+->we have both free and paid version of ansible
+->it is platform indepenndent
+->ansible works with YAML language (yet another markup language)
+->yaml is a indentent based language
+->ansible dependency is python
+->we can write ansible playbooks using yaml
+->GUI for ansible is Ansible-Tower
+
+CONFIGURATION:
+->it is a hardware and software properties of a server
+->cpu,memory and os
+
+MANAGEMENT:
+->update, delete, install
+
+HOW IT WORKS:
+ARCHITECTURE: given in picture
+
+ANSIBLE SERVER:
+->used to communicate with worker nodes and install packages, deployment
+WORKER NODES:
+->takes commands from ansible server and works according to it
+PLAYBOOK:
+->contains the code which is used to perform action
+INVENTORY:
+->contains information about worker nodes and groups
+
+SETUP:
+->create 5 servers (1=ansible, 2-dev, 2-test)
+ALL SERVERS:
+->sudo -i
+->hostnamectl set-hostname ansible, hostnamectl set-hostname dev-1, hostnamectl set-hostname dev-2, hostnamectl set-hostname test-1,hostnamectl set-hostname test-2
+->change root password using passwd root in all servers
+->vim /etc/ssh/sshd_config (38 uncomment, 63 no to yes)
+		PermitRootLogin yes
+		PasswordAuthentication yes
+->systemctl restart sshd
+->systemctl status sshd
+
+ANSIBLE SERVER:
+->amazon-linux-extras install ansible2 -y
+->yum install python python-pip python-dlevel -y
+->vim /etc/ansible/hosts
+->hostname -i ---> to check private ip address of an instance
+->[dev]
+	private ip address of dev-1
+	private ip address of dev-2
+  [test]
+	private ip address of test-1
+	private ip address of test-2
+
+->ssh-keygen	(enter 4 times)	: used to create a ssh key
+->ssh-copy-id root@private_ip_address---->yes---->password
+->ssh private_ip_address		: to center into the nodes via ssh
+->ctrl+d				: to exit
+NOTE:
+->copy the keys to all worker nodes by using the above method
+
+ADHOC COMMANDS:
+->these are simple linux commands 
+->used for temporary works
+->these commands will be over-raided
+ex:
+->ansible all -a "yum install git -y"
+->ansible all -a "git --version"
+->ansible dev -a "yum install maven -y"
+->ansible all -a "maven --version"
+->ansible all -a "touch file1"
+->ansible all -a "ls"
+->ansible all -a "yum install httpd -y"
+->ansible all -a "systemctl start httpd"
+->ansible all -a "systemctl status httpd"
+->ansilbe all -a "useradd rushi"
+->ansilbe all -a "cat /etc/passwd"
+
+Explanation:
+ansible: This is the Ansible command.
+all: This specifies that you want to target all hosts defined in your inventory.
+-a: This flag indicates that you're going to provide an ad-hoc command to execute.
+"yum install -y git": This is the command you want to execute. It tells Ansible to use yum to install Git (git package), and the -y flag is used to automatically answer yes to any prompts (useful for unattended installations).
+
+INVENTORY HOST PATTERN:
+->to list all worker nodes
+->ansible all --list-hosts
+->ansible dev --list-hosts
+->ansible test --list-hosts
+->ansible test[0] --list-hosts
+->ansible all[-1] --list-hosts
+->ansible all[-2] --list-hosts
+->ansible all[1:3] --list-hosts
+
+HISTORY COMMAND ON TIME STAMP:
+->history
+->export HISTTIMEFORMAT="%F %T "
+->history
+
+==================================================================================================================================================
+
+class-2---ansible modules
+-------------------------
+MODULES:
+->modules work on key value pair
+->modules used to do the work which we want
+->depending on the work the module changes
+->modules main propose is to reusability
+ex:
+-> name 		: rushi
+-> value 		: 1234
+-> loc 	  	: bangalore
+
+COLOR PATTERN:
+->yellow 		: successful
+->red		: failure
+->green		: already done
+->blue		: skipped
+
+ex:
+->present 	: to install a package
+->absent		: to uninstall package
+->latest		: to update package
+->started	: to start a service
+->stopped	: to stop a service
+
+->ansible all -a "yum install git -y"
+->ansible all -m yum -a "name=git state=present"
+->ansible all -m yum -a "name=docker state=absent"
+->ansible all -m yum -a "name=docker state=latest"
+->ansible all -m yum -a "name=httpd state=present"
+
+->ansible all -m service -a "name=httpd state=started"
+->ansible all -m service -a "name=httpd state=stopped"
+
+->ansible all -m user -a "name=rushi state=present"
+->ansible all -m user -a "name=rushi state=absent"
+
+->ansible all -m copy -a "src=app.yml dest=/tmp"
+->ansible all -m copy -a "src=app.yml dest=/root"
+->ansible all -a "ls /root"
+
+
+NOTE:
+->app.yml is a text file which contains the properties of application
+->modules main propose is to reusability, for that purpose we can use ansible playbooks
+
+ANSIBLE PLAYBOOKS:
+->playbook is a collection of modules
+->we can execute multiple modules at a same time
+->we can reuse the playbooks
+->playbooks will be written on YAML language
+->it is a human-readable and serial language
+
+YAML:
+->yaml is syntax based language
+->yaml starts with --- and end with ... (optional)
+->we write it on list format
+->extension is .yml or .yaml
+->YAML 		: yet another markup language
+->HTML 		: hyper text markup language
+->xml	  	: extensible markup language
+
+COMMENTING YAML FILE CONTENT:
+-># 		: it is used to comment the single line
+->/* */		: it is used to comment the multiple lines
+ex:
+	#- name 		: install httpd
+
+	/* - name 	: install httpd
+	  yum	 	: name=httpd state=present
+	- name 		: start httpd
+	  service 		: name=httpd state=started */
+
+YAML LINT:
+->yaml limt is used to correct the yaml file syntax
+->https://www.yamllint.com/
+
+Ex1: playbook-1.yml
+---
+- hosts : all
+  tasks : 
+	- name : install httpd
+	  yum: name=httpd state=present
+	- name : start httpd
+	  service : name=httpd state=started
+	- name : create user
+	  user: name=rushi state=present
+...
+->ansible-playbook playbook-1.yml
+
+
+Ex2:playbook-2.yml
+---
+- hosts: all
+  tasks : 
+	- name : remove httpd
+	  yum: name=httpd state=absent
+	- name : stop httpd
+	  service : name=httpd state=stopped
+	- name : remove user
+	  user: name=rushi state=absent
+...
+->ansible-playbook playbook-2.yml
+
+NOTE:
+->here after uninstalling the httpd service, we are stopping the service, it is going to fail and the other yaml commands will not execute 
+->to avoid these failures, we are using tags concept
+
+ok (ok=4)				: total number tasks performed by ansible
+changed (changed=3)	: how many tasks given by the user
+gathering facts		: it is going to get the information from worker node
+
+TAGS:
+->it is used to execute or skip a specific tasks
+->tag names can be any
+
+Ex2:playbook-3.yml
+---
+- hosts: all
+  tasks : 
+	- name : install docker
+	  yum: name=docker state=present
+	  tags  : a
+	- name : start docker
+	  service : name=docker state=started
+	  tags  : b
+	- name : install maven
+	  yum: name=maven state=present
+	  tags  : c
+	- name : create user
+	  user: name=rushi state=present
+	  tags  : d
+...
+
+SINGLE TAGS:
+->ansible-playbook playbook-3.yml --tags c
+MULTIPLE TAGS:
+->ansible-playbook playbook-3.yml --tags a,b
+
+SKIP TAGS:
+->ansible-playbook playbook-3.yml --skip-tags "c"
+MULTIPLE SKIP TAGS:
+->->ansible-playbook playbook-3.yml --skip-tags "b,c"
+
+==================================================================================================================================================
+
+3---shell vs command vs raw
+-------------------------------
+SHELL vs COMMAND vs RAW:
+Ex: rushi.yml
+- hosts: all
+  tasks : 
+	- name : install httpd
+	  shell : yum install git -y
+	- name : install httpd
+	  command : yum install maven -y
+	- name : install httpd
+	  raw : yum install docker -y
+->ansible-playbook rushi.yml
+
+RAW >> COMMAND >> SHELL
+->sed -i 's/install/remove/g' rushi.yml
+
+Ex: rushi.yml
+- hosts: all
+  tasks : 
+	- name : remove httpd
+	  shell : yum remove git -y
+	- name : remove httpd
+	  command : yum remove maven -y
+	- name : remove httpd
+	  raw : yum remove docker -y
+->ansible-playbook rushi.yml
+
+
+NOTE:
+->without installing python in ansible-master node we can work with all remaining nodes using RAW 
+
+VARIABLES:
+->there are two types of variables 
+1)static variables
+2)dynamic variables
+
+STATIC VARS:
+SINGLE STATIC VARS AND MULTI STATIC VARS:
+->variables which will define inside playbook
+Ex: rushi.yml
+- hosts : all
+  vars :
+      a : git
+      b : maven
+      c : docker
+  tasks : 
+	- name : install git
+	  yum	 : name={{a}} state=present
+	- name : install maven
+	  yum 	 : name={{b}} state=present
+	- name : install docker
+	  yum 	 : name={{c}} state=present
+->ansible-playbook rushi.yml
+
+->sed -i 's/install/remove/g' rushi.yml
+->sed -i 's/git/git*/g' rushi.yml	: outside a file to replace any word we can use in this way
+NOTE:
+->%s/absent/present/g		: inside a file to replace any word we can use in this way
+
+Ex: rushi.yml
+- hosts : all
+  vars :
+      a : git*
+      b : maven
+      c : docker
+  tasks : 
+	- name : remove git*
+	  yum	 : name={{a}} state=absent
+	- name : remove maven
+	  yum 	 : name={{b}} state=absent
+	- name : remove docker
+	  yum 	 : name={{c}} state=absent
+->ansible-playbook rushi.yml
+
+DYNAMIC VARS:
+SINGLE DYNAMIC VARS:
+-> variables which are not define inside playbook
+Ex: rushi.yml
+- hosts : all
+  vars :
+      a : git
+      b : maven
+      c : docker
+  tasks : 
+	- name : install git
+	  yum	 : name={{a}} state=present
+	- name : install maven
+	  yum 	 : name={{b}} state=present
+	- name : install docker
+	  yum 	 : name={{c}} state=present
+	- name : install pkg
+	  yum 	 : name={{d}} state=present
+->ansible-playbook rushi.yml --extra-vars "d=tree"
+
+MULTI DYNAMIC VARS:
+Ex: rushi.yml
+- hosts : all
+  vars :
+      a : git
+      b : maven
+      c : docker
+  tasks : 
+	- name : install git
+	  yum	 : name={{a}} state=present
+	- name : install maven
+	  yum 	 : name={{b}} state=present
+	- name : install docker
+	  yum 	 : name={{c}} state=present
+	- name : install pkg
+	  yum 	 : name={{d}} state=present
+	- name : install pkg
+	  yum 	 : name={{e}} state=present
+->ansible-playbook rushi.yml --extra-vars "d=tree e=java-1.8.0-openjdk"
+
+LOOPS:
+Ex1:rushi.yml
+- hosts : all
+  tasks : 
+	- name : install pkgs
+	  yum	 : name={{item}} state=present
+	  with_items :
+		- git
+		- maven
+		- docker
+		- tree
+		- httpd 
+->ansible-playbook rushi.yml 
+
+
+->sed -i 's/present/absent/g' rushi.yml
+->sed -i 's/git/git*/g' rushi.yml	
+Ex2:rushi.yml
+- hosts : all
+  tasks : 
+	- name : install pkgs
+	  yum	 : name={{item}} state=absent
+	  with_items :
+		- git
+		- maven
+		- docker
+		- tree
+		- httpd 
+->ansible-playbook rushi.yml 
+
+Ex3:rushi.yml
+- hosts : all
+  tasks : 
+	- name :  create users
+	  user	 : name={{item}} state=present
+	  with_items :
+		- a
+		- b
+		- c
+		- d
+		- e 
+->ansible-playbook rushi.yml 
+
+->sed -i 's/present/absent/g' rushi.yml
+Ex3:rushi.yml
+- hosts : all
+  tasks : 
+	- name :  create users
+	  user	 : name={{item}} state=absent
+	  with_items :
+		- a
+		- b
+		- c
+		- d
+		- e 
+->ansible-playbook rushi.yml 
+
+TROUBLESHOOTING:
+->to check the connected hosts?
+->in known host you are going to get the list of nodes connected with your ansible main server
+->cd /ssh --->cat known_hosts
+
+USER INFORMATION:
+->vim /etc/ansible/hosts
+->ansible all --list-hosts
+->it will list the dummy ips also
+
+SETUP MODULE:
+->setup module is used to print the complete information of worker nodes
+->to check worker node cpu and memory?
+->setup module will print the complete information of a worker node
+->ansible all -m setup
+->ansible all -m setup | grep -i cpus
+->ansible all -m setup | grep -i mem
+->ansible all -m setup | grep -i family
+
+==================================================================================================================================================
+
+****Class-4---conditions,roles ......
+-----------------------------
+***CONDITIONS:
+CLUSTER:
+->group of nodes or servers is known as cluster
+->there are two types of clusters
+1)homogeneous cluster
+2)heterogeneous cluster
+
+HOMOGENIOUS:
+->servers with same OS and flavour(family)
+HETEROGENEOUS:
+->servers with deifferent OS and flavoue(family)
+
+ex1: rushi.yml
+- hosts : all
+  tasks : 
+    - name : installing git on RedHat
+      yum: name=git state=present
+      when  : ansible_os_family == "RedHat"  ----->condition
+
+    - name : installing git on Ubuntu
+      yum: name=git state=present
+      when  : ansible_os_family == "Debian"  ------>condition
+->ansible-playbook rushi.yml
+->sed -i 's/present/absent/g' rushi.yml
+->sed -i 's/installing/removing/g' rushi.yml
+->sed -i 's/git/git*/g' rushi.yml
+
+ex2: rushi.yml
+- hosts : all
+  tasks : 
+	- name : removing git on RedHat
+	  yum	 : name=git* state=absent
+	  when  : ansible_os_family == "RedHat"
+
+	- name : removing git on Ubuntu
+	  yum	 : name=git state=absent
+	  when  : ansible_os_family == "Debian"
+->ansible-playbook rushi.yml
+
+ex3: rushi.yml
+- hosts : all
+  tasks : 
+	- name : installing httpd on RedHat
+	  yum	 : name=httpd state=present
+	  when  : ansible_os_family == "RedHat"
+
+	- name : installing apache2 on Ubuntu
+	  yum	 : name=apache2 state=present
+	  when  : ansible_os_family == "Debian"
+->ansible-playbook rushi.yml
+->sed -i 's/present/absent/g' rushi.yml
+->sed -i 's/installing/removing/g' rushi.yml
+
+ex4: rushi.yml
+- hosts : all
+  tasks : 
+	- name : removing httpd on RedHat
+	  yum	 : name=httpd state=absent
+	  when  : ansible_os_family == "RedHat"
+
+	- name : removing apache2 on Ubuntu
+	  yum	 : name=apache2 state=absent
+	  when  : ansible_os_family == "Debian"
+->ansible-playbook rushi.yml
+
+HANDLERS:
+->here one task is depending upon other task
+->when task-1 is executed it will call task-2 to perform(execute) the action
+ex:
+->if we want to restart httpd we need to install it first
+->restarting depending on the installation of httpd
+NOTE:
+->here we have notify module
+
+ex1: rushi.yml
+- hosts : all
+  tasks : 
+	- name : installing httpd on RedHat
+	  yum	 : name=httpd state=present
+	  notify : starting apache
+  handlers : 
+	- name : starting apache
+	  service : name=https state=started
+->ansible-playbook rushi.yml
+->ansible all -a "systemctl status httpd"
+->sed -i 's/present/absent/g' rushi.yml
+
+ANSIBLE VAULT:
+->it is used to encrypt files, playbooks and so on
+->Technique : AES256 (using by facebook)
+->vault will store our data very safely and securly
+->if we want to access any data which is in vault we need to give password
+NOTE:
+->we can restrict the users to access the playbooks also
+
+ex1: creds.txt
+	user = rushi
+	password = rushi123
+->cat credits.txt
+->it will display the usern and password, it is not secure for that we need to create ansible vault
+
+->ansible-vault create creds1.txt
+->new vault password : ........
+->confirm new valut password : ........
+	user = rushi
+	password = rushi123
+->cat creds1.txt
+
+->ansible-vault create creds1.txt		: to create the vault
+->ansible-vault edit creds1.txt		: to edit the vault
+->ansible-vault rekey creds1.txt		: to change the password for a vault
+->ansible-vault decrypt creds1.txt		: to decrypt the content
+->ansible-vault encrypt creds1.txt		: to encrypt the content
+->ansible-vault view creds1.txt		: to show the content without decrypt
+
+DRY RUN:
+->without executing the playbook we can check the output
+->playbook is not going to execute but it will show what happen if the playbook is executed
+ex:
+->ansible-playbook rushi.yml --check
+
+PIP:
+->it is a package manager used to install python libraries
+Ex;
+->RedHat 	: yum
+->ubuntu	: apt
+->python	: pip
+
+Ex1: rushi.yml
+- hosts: all
+  tasks : 
+	- name : install pip
+	  yum	 : name=pip state=present
+	- name : install NumPy
+	  pip : name=NumPy state=present
+	- name : install Pandas
+	  pip : name=Pandas state=present
+
+***ROLES:
+->99% we are using in real time with roles only
+->used to divide the playbook into directory structure
+->we can organize the playbook
+->we can encapsulate the data (encapsulation : hiding the content----->we cannot show what is running inside the playbook)
+->we can reduce the playbook length
+
+Steps:
+1)mkdir playbooks
+2)yum install tree -y
+3)mkdir -p roles/one/tasks
+	-p : parent directory
+4)nano roles/one/tasks/main.yml
+	- name: installing maven 
+	  yum: name=maven state=present
+5)nano master.yml
+	- hosts: all
+	  roles:
+	     - one
+->ansible-playbook master.yml
+
+Ex1:
+->mkdir -p roles/rushi/tasks
+->nano roles/rushi/tasks/main.yml
+	- name : create user
+	  user : name=rushi state=present
+->nano master.yml
+	- hosts: all
+	  roles:
+	     - one
+	     - rushi
+->ansible-playbook master.yml
+
+Ex1:
+->mkdir -p roles/file/tasks
+->nano roles/file/tasks/main.yml
+	- name : create a file
+	  shell : touch file1
+->nano master.yml
+	- hosts: all
+	  roles:
+	     - one
+	     - rushi
+	     - file
+->ansible-playbook master.yml
+
+#ANSIBLE-GALAXY:(not important, not for interview)
+->it is a place to store all the playbooks roles or playbook like code on github
+->it is used to download the roles from other persons or third-party
+->we can use other people roles also here
+->it will consist the community roles
+->we can upload and download our roles in ansible galaxy
+->ansible-galaxy search java
+->ansible-galaxy search tomcat
+->ansible-galaxy install akhilesh9589.tomcat
+->cd /root/.ansible/roles/akhilesh9589.tomcat/		: we can see the roles
+->ansible-galaxy search --author akhilesh9589		: to see how many roles did Akhilesh wrote
+->ansible-galaxy search --author alinkins	
+
+==================================================================================================================================================
+
+Class-5----Lamp stack
+---------------------
+DEBUG MODULE:
+->the main propose of the debug module is to print the messages or customise outputs
+Ex1:rushi.yml
+->ansible all -m setup ------>copy the below commands from the drop down content
+ansible_hostname
+ansible_memfree_mb
+ansible_memtotal_mb
+ansible_os_family
+ansible_pkg_mgr
+ansible_processor_vcpus
+
+- hosts: all
+  tasks : 
+	- name : to print mgs
+		debug :
+		msg	: "the node name os :{{ansible_hostname}}, the total memory is : {{ansible_memfree_mb}}, the total free memory is : {{ansible_memtotal_mb}},
+the flavour of ec2 is : {{ansible_os_family}}, the pkg manager is : {{ansible_pkg_mgr}}, the total cpus is : {{ansible_processor_vcpus}}"
+->ansible-playbook rushi.yml
+
+#JINJA2 TEMPLATE:
+->used to get the customised output, here it is a text file which can extract the variables and these values will change as per time
+NOTE:
+->both debug and jinja2 are used for same purpose but recommend is debug
+
+#ANSIBLE LOOKUPS: (we don't use on real time)
+->if you want to get data from a file or from database or any external resource in that case we are going to use lookups
+->this module used to get data from files, databases and key values
+Ex1:rushi.yml
+User=rushi
+client=amazon
+->cat creds.txt
+
+- hosts: dev
+  vars : 
+	a : "{{ lookup('file', '/root/creds.txt') }}"
+	tasks :
+	   - debug : 
+		msg : "hi my user name is {{a}}"
+->ansible-playbook creds.yml
+
+ANSIBLE STRATAGIES:
+->ansible stratagies is a way of working with the ansible playbook
+->by default ansible is going to work on Linear stratagies
+->there are 4 types of stratagies in ansible
+1)linear stratagies 
+2)free stratagies 
+3)rolling stratagies 
+4)sequence stratagies 
+5)batch stratagies 
+
+@LINEAR STRATAGIES:
+->it is used to execute the tasks sequencencially
+Ex1:
+->if I have 10 servers task will execute sequencencially
+Ex2:creds.txt
+- hosts: dev
+  gather_facts: false ----->in real time always it is true never mention false
+  strategy : free
+  vars : 
+	a : "{{ lookup('file', '/root/creds.txt') }}"
+	tasks :
+	   - debug : 
+		msg : "hi my user name is {{a}}"
+->ansible-playbook creds.yml
+
+@FREE STRATEGIES:
+->execute all tasks on all node at same time
+Ex:
+->if I have 10 servers the tasks will execute all at a time
+@ROLLING STRATEGIES:
+->it is used to rollback the task from task1 to task2 vice-versa
+@SEQUENCE STRATEGIES:
+->step by step execution of the tasks
+@BATCH STRATEGIES:
+->execute all at a single time at all nodes
+NOTE:
+->in real time we don't need to rolling, sequence and batch and for inter also
+
+!ASYNCHRONOUS ACTIONS & POLLING: 31:17 need to write 
+->we use this for the restricting the task for a particular time
+->with in the requested time only the task need to be completed 
+->if it takes more than the requested time the tasks will fail
+Ex1:rushi.yml
+- hosts: all
+  tasks :
+	- name : install git 
+	  command : sleep 40 
+	  async : 30
+	  poll : 10
+	- name : install maven
+	  yum : name= maven state=present
+->ansible-playbooks rushi.yml
+
+LAMP STACK:
+L	: linux ---.server layer
+A	: apache --->presentation layer
+M	: mysql --->database layer
+P	: php/python --->application layer
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+INTERVIEW QUESTIONS:
+1)what is ansible and explain the architecture of the ansible?
+2)what is inventory file?
+3)what is adhoc comamnds?
+4)what are the modules you know on ansible?
+5)what is playbook?
+6)what is yaml and how to write a basic playbook using yaml?
+7)explain conditions in ansible?
+8)explain about handlers?
+9)how to install python packages using ansible?
+
+
+
+
+
+
+
+
+
+
+
+@ = need to learn exact not known
+# = leave it no need to learn this topics
+!  = not told yet
+*** = important
+
+
+
